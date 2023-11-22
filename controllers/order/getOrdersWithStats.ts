@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { Order } from "../../models/order";
 import { Line } from "../../models/line";
 import { getOrderDetails } from "../../services/getOrderDetails";
-import {Product} from "../../models/product";
 
 export const getOrdersWithStats = function (
   req: Request,
