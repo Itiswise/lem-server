@@ -6,7 +6,7 @@ export const getFullOrders = function (
   req: Request,
   res: Response,
   next: NextFunction
-): void {
+): void|Response {
   // Order.find().cursor({ transform: JSON.stringify }).pipe(res.type("json"));
   // Order.find()
   //   .cursor() //@ts-ignore

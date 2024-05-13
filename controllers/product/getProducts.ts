@@ -6,11 +6,27 @@ export const getProducts = function (
   res: Response,
   next: NextFunction
 ): void {
-  Product.find({}, "partNumber", function (err, products) {
+  var limit = typeof req.query.limit === "string" ? parseInt(req.query.limit) : 0;
+  var skip = typeof req.query.skip === "string" ? parseInt(req.query.skip) : 0;
+  var search = typeof req.query.search === "string" ? req.query.search : "";
+  var params = { partNumber: { $regex: search, $options: "i", $ne : null }};
+
+  Product.find(params, "partNumber", function (err, products) {
     if (err) {
       return next(err);
     }
 
-    res.json({ products });
-  });
+    try {
+      Product.countDocuments(params, (err, count) => {
+        if (err) {
+          return next(err);
+        }
+
+        res.json({ products: products, allProductsCount: count });
+      });
+    }
+    catch (err) {
+      return next(err);
+    }
+  }).limit(limit).skip(skip).sort({ partNumber: 1 });
 };
