@@ -39,10 +39,16 @@ export const productRouter = function (app: Express) {
     requireAuth,
     ProductStatisticsController.getOneProductStats
   );
+  app.post(
+    "/api/product/statistics",
+    requireAuth,
+    ProductStatisticsController.addProdStatsForRouter
+  );
   app.put(
     "/api/product/statistics/:_id",
     requireAuth,
     ProductStatisticsController.updateProdStatsForRouter
   );
+  app.delete("/api/product/statistics/:_id", requireAuth, ProductStatisticsController.deleteProductStats);
   app.delete("/api/product/:_id", requireAuth, ProductController.deleteProduct);
 };

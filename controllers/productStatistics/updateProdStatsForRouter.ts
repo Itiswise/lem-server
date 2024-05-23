@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Types } from "mongoose";
 import { ProductStatistics } from "../../models/productStatistics";
+import {Order} from "../../models/order";
 
 const ObjectId = Types.ObjectId;
 
@@ -67,6 +68,19 @@ export const updateProdStatsForRouter = function (
 
     if (givenTactTime) {
       existingProductStatistics.givenTactTime = parseInt(givenTactTime);
+
+      Order.find({ partNumber: { $regex: existingProductStatistics?.partNumber, $options: "i" } }, function(err, results) {
+        if (err) {
+          return next(err);
+        }
+
+        if (results) {
+          results.forEach((order) => {
+            order.tactTime = parseInt(givenTactTime);
+            order.save();
+          });
+        }
+      });
     }
 
     if (suggestedTactTime) {
