@@ -29,6 +29,18 @@ export const changeOperator = function (
             return;
         }
 
+        const existingEmailOperator = Operator.findOne({
+            email,
+            _id: { $ne: _id },
+        });
+
+        if (existingEmailOperator) {
+            res.status(422).send({
+                error: "Email is already in use by another operator!",
+            });
+            return;
+        }
+
         Operator.findByIdAndUpdate(
             _id,
             { firstname, lastname, email },
