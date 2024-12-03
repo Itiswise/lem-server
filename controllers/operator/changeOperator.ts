@@ -4,11 +4,11 @@ import { Operator } from "../../models/operator";
 
 const ObjectId = Types.ObjectId;
 
-export const changeOperator = function (
+export const changeOperator = async function (
     req: Request,
     res: Response,
     next: NextFunction
-): void {
+): Promise<void> {
     try {
         const _id = req.params._id;
         const firstname = req.body.firstname;
@@ -29,12 +29,12 @@ export const changeOperator = function (
             return;
         }
 
-        const existingEmailOperator = Operator.findOne({
+        const existingEmailOperators = await Operator.findOne({
             email,
             _id: { $ne: _id },
         });
 
-        if (existingEmailOperator) {
+        if (existingEmailOperators) {
             res.status(422).send({
                 error: "Email is already in use by another operator!",
             });
