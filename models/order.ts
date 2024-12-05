@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 import { breakSchema, BreakAttrs } from "./break";
 import { scanSchema, ScanAttrs } from "./scan";
 
+export interface operatorsAttr {
+  position: 'Position 1' | 'Position 2' | 'Position 3';
+  operator: string | null;
+}
 export interface OrderAttrs {
   orderNumber: string;
   quantity: number;
@@ -13,6 +17,7 @@ export interface OrderAttrs {
   orderAddedAt: Date;
   breaks: BreakAttrs[];
   scans: ScanAttrs[];
+  operators?: [operatorsAttr, operatorsAttr, operatorsAttr];
 }
 
 interface OrderModel extends mongoose.Model<OrderDoc> {
@@ -30,7 +35,19 @@ export interface OrderDoc extends mongoose.Document {
   orderAddedAt: Date;
   breaks: BreakAttrs[];
   scans: ScanAttrs[];
+  operators?: [operatorsAttr, operatorsAttr, operatorsAttr];
 }
+
+export const VALID_POSITIONS = ['Position 1', 'Position 2', 'Position 3'];
+
+export const operatorSchema = new mongoose.Schema({
+  position: {
+    type: String,
+    enum: VALID_POSITIONS,
+    required: true,
+  },
+  operator: { type: String, required: false },
+});
 
 export const orderSchema = new mongoose.Schema({
   orderNumber: { type: String, required: true, unique: true, index: true },
@@ -43,6 +60,28 @@ export const orderSchema = new mongoose.Schema({
   orderAddedAt: { type: Date, default: Date.now },
   breaks: [breakSchema],
   scans: [scanSchema],
+  operators: {
+    type: [operatorSchema],
+    validate: {
+      validator: function (operators: any[]) {
+        if (!operators) return true;
+
+        if (operators.length > 3) {
+          return false;
+        }
+
+        const positions = operators.map((op) => op.position);
+        if (new Set(positions).size !== positions.length) {
+          return false;
+        }
+
+        const operatorNames = operators.map((op) => op.operator);
+        return new Set(operatorNames).size === operatorNames.length;
+      },
+      message: "Each operator must have both position and operator, and the number of operators cannot exceed 3.",
+    },
+    required: false,
+  },
 });
 
 export const Order = mongoose.model<OrderDoc, OrderModel>("Order", orderSchema);
