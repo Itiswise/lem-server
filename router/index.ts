@@ -8,6 +8,7 @@ import { orderRouter } from "./orderRouter";
 import { productRouter } from "./productRouter";
 import { redirectionRouter } from "./redirectionRouter";
 import { userRouter } from "./userRouter";
+import { operatorRouter } from "./operatorRouter";
 import { partnumberConfigRouter } from "./partnumberConfigRouter";
 
 export default (app: Express) => {
@@ -20,5 +21,6 @@ export default (app: Express) => {
   productRouter(app);
   redirectionRouter(app);
   userRouter(app);
+  operatorRouter(app);
   partnumberConfigRouter(app);
 };
