@@ -75,7 +75,7 @@ export const orderSchema = new mongoose.Schema({
           return false;
         }
 
-        const operatorNames = operators.map((op) => op.operator);
+        const operatorNames = operators.map((op) => op.operator).filter((name) => name !== null);
         return new Set(operatorNames).size === operatorNames.length;
       },
       message: "Each operator must have both position and operator, and the number of operators cannot exceed 3.",
