@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { breakSchema, BreakAttrs } from "./break";
 import { scanSchema, ScanAttrs } from "./scan";
+import {POSITION_ENUM, ValidOperators} from "../services/operatorsConfig";
 
 export interface operatorsAttr {
   position: 'Position 1' | 'Position 2' | 'Position 3';
@@ -17,7 +18,7 @@ export interface OrderAttrs {
   orderAddedAt: Date;
   breaks: BreakAttrs[];
   scans: ScanAttrs[];
-  operators?: [operatorsAttr, operatorsAttr, operatorsAttr];
+  operators?: ValidOperators;
 }
 
 interface OrderModel extends mongoose.Model<OrderDoc> {
@@ -35,15 +36,13 @@ export interface OrderDoc extends mongoose.Document {
   orderAddedAt: Date;
   breaks: BreakAttrs[];
   scans: ScanAttrs[];
-  operators?: [operatorsAttr, operatorsAttr, operatorsAttr];
+  operators?: ValidOperators;
 }
-
-export const VALID_POSITIONS = ['Position 1', 'Position 2', 'Position 3'];
 
 export const operatorSchema = new mongoose.Schema({
   position: {
-    type: String,
-    enum: VALID_POSITIONS,
+    type: Number,
+    enum: POSITION_ENUM,
     required: true,
   },
   operator: { type: String, required: false },
@@ -75,7 +74,7 @@ export const orderSchema = new mongoose.Schema({
           return false;
         }
 
-        const operatorNames = operators.map((op) => op.operator);
+        const operatorNames = operators.map((op) => op.operator).filter((name) => name !== null);
         return new Set(operatorNames).size === operatorNames.length;
       },
       message: "Each operator must have both position and operator, and the number of operators cannot exceed 3.",
