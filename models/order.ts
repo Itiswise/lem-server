@@ -3,6 +3,10 @@ import { breakSchema, BreakAttrs } from "./break";
 import { scanSchema, ScanAttrs } from "./scan";
 import {POSITION_ENUM, ValidOperators} from "../services/operatorsConfig";
 
+export interface operatorsAttr {
+  position: 'Position 1' | 'Position 2' | 'Position 3';
+  operator: string | null;
+}
 export interface OrderAttrs {
   orderNumber: string;
   quantity: number;
