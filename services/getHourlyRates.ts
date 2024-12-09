@@ -1,22 +1,17 @@
-import { operatorsAttr, OrderDoc } from "../models/order";
+import { OrderDoc } from "../models/order";
 import { LineDoc } from "../models/line";
 import { getValidScans } from "./getValidScans";
 import { renderTime } from "./renderTime";
 import { getDateWithHour } from "./getDateWithHour";
 import { getLineDescription } from "./getLineDescription";
 import { Operator as OperatorModel } from "../models/operator";
+import {ValidOperators, ValidPosition, positionMap} from "./operatorsConfig";
 
-const getPositionLabel = (position: "Position 1" | "Position 2" | "Position 3"): string => {
-    const positionMap = {
-        "Position 1": "Stanowisko 1",
-        "Position 2": "Stanowisko 2",
-        "Position 3": "Stanowisko 3",
-    };
-
-    return positionMap[position] || position;
+const getPositionLabel = (position: ValidPosition): string => {
+    return positionMap[position as keyof typeof positionMap] || String(position);
 };
 
-const formatOperators = async (operators: [operatorsAttr, operatorsAttr, operatorsAttr] | undefined): Promise<string> => {
+const formatOperators = async (operators: ValidOperators | undefined): Promise<string> => {
     if (!operators) return "No operators";
 
     const operatorDetails = await Promise.all(
@@ -55,7 +50,7 @@ export const getHourlyRates = async (order: OrderDoc, lines: LineDoc[]): Promise
         validScans.map(async (scan) => {
             const formattedOperators = await formatOperators(scan.operators);
             const withOperators = formattedOperators ? "\n\n" +
-                formattedOperators : "\n\n";
+                formattedOperators + "\n\n" : "\n\n";
             return {
                 dateHour: getDateWithHour(scan.timeStamp),
                 timeStamp:

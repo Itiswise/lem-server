@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-import {operatorsAttr} from "./order";
+import {ValidOperators} from "../services/operatorsConfig";
 
 export interface ScanAttrs {
   _id?: mongoose.Schema.Types.ObjectId;
   scanContent: string;
   timeStamp: Date;
-  operators?: [operatorsAttr, operatorsAttr, operatorsAttr];
+  operators?: ValidOperators;
   errorCode?: string;
   _line?: mongoose.Schema.Types.ObjectId;
   _user?: mongoose.Schema.Types.ObjectId;
@@ -19,7 +19,7 @@ export interface ScanDoc extends mongoose.Document {
   _id: mongoose.Schema.Types.ObjectId;
   scanContent: string;
   timeStamp: Date;
-  operators?: [operatorsAttr, operatorsAttr, operatorsAttr];
+  operators?: ValidOperators;
   errorCode?: string;
   _line?: mongoose.Schema.Types.ObjectId;
   _user?: mongoose.Schema.Types.ObjectId;
@@ -37,7 +37,7 @@ export const scanSchema = new mongoose.Schema({
     type: [
       {
         position: { type: String, required: true },
-        operator: { type: String, required: false },
+        operator: { type: String, required: true },
       },
     ],
     required: false,
