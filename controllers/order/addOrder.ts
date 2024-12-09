@@ -3,6 +3,7 @@ import { Order } from "../../models/order";
 import { Line } from "../../models/line";
 import { getOrderDetails } from "../../services/getOrderDetails";
 import { addOrUpdateOneOrderStatistics } from "../orderStatistics";
+import { validateOperators } from "../../services/operatorsValidation";
 
 export const addOrder = function (
   req: Request,
@@ -16,6 +17,7 @@ export const addOrder = function (
   const tactTime = req.body.tactTime || 36000; // 10 hours
   const customer = req.body.customer;
   const orderStatus = "open";
+  const operators = req.body.operators || null;
 
   if (
     !orderNumber ||
@@ -30,6 +32,17 @@ export const addOrder = function (
     });
     return;
   }
+
+  if (operators) {
+    const { valid, error } = validateOperators(operators);
+    if (!valid) {
+      res.status(422).send({
+        error,
+      });
+      return;
+    }
+  }
+
   Line.find({}, function (err, lines) {
     if (err) {
       return next(err);
@@ -54,6 +67,7 @@ export const addOrder = function (
         orderStatus,
         breaks: [],
         scans: [],
+        ...(operators && { operators }),
       });
 
       order.save(function (err) {
