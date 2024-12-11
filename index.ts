@@ -11,6 +11,8 @@ import dotenv from "dotenv";
 import router from "./router";
 import { sockets } from "./sockets";
 import { keys } from "./config/keys";
+import {initAgenda} from "./jobs";
+import { createLogger } from "./logger";
 
 const app = express();
 dotenv.config();
@@ -54,3 +56,9 @@ sockets(io);
 
 server.listen(port);
 console.log("server is listening on: ", port);
+
+const logger = createLogger();
+
+(async function() {
+  await initAgenda(logger);
+})();
