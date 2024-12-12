@@ -12,7 +12,7 @@ export const getOperators = async function (
 
         const startIndex = (page - 1) * limit;
 
-        const operators = await Operator.find().skip(startIndex).limit(limit);
+        const operators = await Operator.find().sort({ _id: -1 }).skip(startIndex).limit(limit);
 
         const total = await Operator.countDocuments();
 
