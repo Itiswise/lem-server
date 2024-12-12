@@ -57,7 +57,11 @@ const handleOrderBreak = async (line: any, logger: Logger): Promise<void> => {
 
         logger.info(`Break successfully added to order: ${lineOccupiedWith}`);
     } catch (error) {
-        logger.error(`Error handling break for order ${lineOccupiedWith}: ${error.message}`);
+        if (error instanceof Error) {
+            logger.error(`Error handling break for order ${lineOccupiedWith}: ${error.message}`);
+        } else {
+            logger.error(`Unknown error handling break for order ${lineOccupiedWith}: ${JSON.stringify(error)}`);
+        }
     }
 };
 
@@ -76,6 +80,10 @@ export const pauseOrdersJob = async (logger: Logger): Promise<void> => {
 
         logger.info("All occupied lines have been processed.");
     } catch (error) {
-        logger.error(`Error in pauseOrdersJob: ${error.message}`);
+        if (error instanceof Error) {
+            logger.error(`Error in pauseOrdersJob: ${error.message}`);
+        } else {
+            logger.error(`Unknown error in pauseOrdersJob: ${JSON.stringify(error)}`);
+        }
     }
 };
