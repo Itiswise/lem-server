@@ -13,8 +13,7 @@ export const initAgenda = async function(logger: Logger): Promise<void> {
         }
     );
 
-    const scheduledHour = 13;
-    const cronExpression = `0 ${scheduledHour} * * *`;
+    const cronExpression = '0 13 * * *';
 
     agenda.define('pause_orders', async function() {
       await pauseOrdersJob(logger);

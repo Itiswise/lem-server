@@ -13,7 +13,7 @@ export const changeOperator = async function (
         const _id = req.params._id;
         const firstname = req.body.firstname;
         const lastname = req.body.lastname;
-        const email = req.body.email;
+        const identifier = req.body.identifier;
 
         if (!_id) {
             res.status(422).send({
@@ -29,21 +29,21 @@ export const changeOperator = async function (
             return;
         }
 
-        const existingEmailOperators = await Operator.findOne({
-            email,
+        const existingIdentifierOperators = await Operator.findOne({
+            identifier,
             _id: { $ne: _id },
         });
 
-        if (existingEmailOperators) {
+        if (existingIdentifierOperators) {
             res.status(422).send({
-                error: "Email is already in use by another operator!",
+                error: "Identifier is already in use by another operator!",
             });
             return;
         }
 
         Operator.findByIdAndUpdate(
             _id,
-            { firstname, lastname, email },
+            { firstname, lastname, identifier },
             { new: true, upsert: false, runValidators: true },
             function(err, existingOperator) {
             if (err) {

@@ -1,19 +1,15 @@
-import {POSITION_ENUM, ValidOperators, operatorsAttr} from "./operatorsConfig";
+import {ValidOperators, operatorsAttr} from "./operatorsConfig";
 
 export const validateOperators = (operators: ValidOperators): { valid: boolean; error?: string } => {
     if (!Array.isArray(operators)) {
         return { valid: false, error: "Operators must be an array!" };
     }
 
-    if (operators.length !== POSITION_ENUM.length) {
-        return { valid: false, error: "Operators array must contain exactly 3 operators!" };
-    }
-
     const isValidStructure = operators.every((op: any): op is operatorsAttr => {
         return (
             typeof op === "object" &&
-            POSITION_ENUM.includes(op.position) &&
-            (op.operator === null || (typeof op.operator === "string" && op.operator.trim().length > 0))
+            typeof op.position === "number" &&
+            typeof op.operator === "string" && op.operator.trim().length > 0
         );
     });
 

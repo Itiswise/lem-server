@@ -8,29 +8,29 @@ export const addOperator = function (
 ): void {
     const firstname = req.body.firstname;
     const lastname = req.body.lastname;
-    const email = req.body.email;
+    const identifier = req.body.identifier;
 
-    if (!email || !firstname || !lastname) {
+    if (!identifier || !firstname || !lastname) {
         res.status(422).send({
             error:
-                "You must provide firstname, lastname and email",
+                "You must provide firstname, lastname and identifier",
         });
         return;
     }
 
-    Operator.findOne({ email }, function (err, existingOperator) {
+    Operator.findOne({ identifier }, function (err, existingOperator) {
         if (err) {
             return next(err);
         }
 
         if (existingOperator) {
-            return res.status(422).send({ error: "Operator already exists with this email" });
+            return res.status(422).send({ error: "Operator already exists with this identifier" });
         }
 
         const operator = new Operator({
             firstname,
             lastname,
-            email,
+            identifier,
         });
 
         operator.save(function (err) {
