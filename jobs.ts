@@ -19,7 +19,7 @@ export const initAgenda = async function(logger: Logger): Promise<void> {
 
     await agenda.start();
 
-    await agenda.schedule('everyday 14:00', 'pause_orders');
+    await agenda.schedule('everyday 13:00', 'pause_orders');
 
     async function graceful() {
         await agenda.stop();
