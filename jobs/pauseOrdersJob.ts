@@ -18,11 +18,17 @@ const handleOrderBreak = async (line: any, logger: Logger): Promise<void> => {
 
         const { breaks } = order;
 
+        if (!breaks) {
+            logger.warn(`No breaks found for order: ${lineOccupiedWith}`);
+            return;
+        }
+
         const orderLineId = line._id;
         const matchingBreaks = breaks.filter((b) => b._line.toString() === orderLineId.toString());
         const lastMatchingBreak = matchingBreaks[matchingBreaks.length - 1];
 
         if (!lastMatchingBreak?.breakEnd) {
+            logger.warn(`Order ${lineOccupiedWith} already has an active break.`);
             return;
         }
 

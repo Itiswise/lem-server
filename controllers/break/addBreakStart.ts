@@ -3,6 +3,10 @@ import { Request, Response, NextFunction } from "express";
 import { Order } from "../../models/order";
 import { Break } from "../../models/break";
 
+import {createLogger} from "../../logger";
+
+const logger = createLogger();
+
 export const addBreakStart = function (
   req: Request,
   res: Response,
@@ -18,6 +22,7 @@ export const addBreakStart = function (
     });
     return;
   }
+
   Order.findOne({ orderNumber: orderNumber }, function (err, existingOrder) {
     if (err) {
       next(err);
@@ -49,9 +54,13 @@ export const addBreakStart = function (
         next(err);
         return;
       }
+
       res.json({
         existingOrder,
       });
+
+      logger.info(`New break started for order ${orderNumber}`);
+
     });
   });
 };

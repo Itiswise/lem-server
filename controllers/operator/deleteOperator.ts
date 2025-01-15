@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from "express";
 import { Types } from "mongoose";
 import { Operator } from "../../models/operator";
 import { Order } from "../../models/order";
+import {createLogger} from "../../logger";
+
+const logger = createLogger();
 
 const ObjectId = Types.ObjectId;
 
@@ -43,8 +46,8 @@ export const deleteOperator = async function (
                 return res.status(422).send({ error: "Operator does not exist!" });
             } else {
                 const result = await Order.updateMany(
-                    { "operators.operator": existingOperator._id }, // Match orders containing this operator
-                    { $pull: { operators: { operator: existingOperator._id } } } // Remove the operator from operators array
+                    { "operators.operator": existingOperator._id },
+                    { $pull: { operators: { operator: existingOperator._id } } }
                 );
 
                 if (!result) {
@@ -52,6 +55,8 @@ export const deleteOperator = async function (
                 }
 
                 const message = `Deleted operator with identifier - ${existingOperator.identifier}`;
+
+                logger.info(message);
 
                 res.json({
                     message,
@@ -74,6 +79,10 @@ const canDeleteOperator = async function(operatorId: string): Promise<boolean> {
         orderStatus: "open",
         operators: { $elemMatch: { operator: operatorId } }
     });
+
+    if (openOrders.length === 0) {
+        return true;
+    }
 
     return openOrders.some(order => {
         const breaks = order.breaks;
