@@ -13,16 +13,13 @@ export const initAgenda = async function(logger: Logger): Promise<void> {
         }
     );
 
-    //const cronExpression = '0 13 * * *';
-    const cronExpression = '0 * * * *';
-
     agenda.define('pause_orders', async function() {
       await pauseOrdersJob(logger);
     });
 
     await agenda.start();
 
-    await agenda.every(cronExpression, 'pause_orders');
+    await agenda.schedule('everyday 14:00', 'pause_orders');
 
     async function graceful() {
         await agenda.stop();

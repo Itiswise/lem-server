@@ -16,28 +16,21 @@ const handleOrderBreak = async (line: any, logger: Logger): Promise<void> => {
             return;
         }
 
-        const { breaks } = order;
+        const { breaks, operators } = order;
 
-        if (!breaks) {
-            logger.warn(`No breaks found for order: ${lineOccupiedWith}`);
+        if (!operators || !operators?.length) {
+            logger.info(`No operators found for order: ${lineOccupiedWith}`);
             return;
         }
 
         const orderLineId = line._id;
-        const matchingBreaks = breaks.filter((b) => b._line.toString() === orderLineId.toString());
-        const lastMatchingBreak = matchingBreaks[matchingBreaks.length - 1];
-
-        if (!lastMatchingBreak?.breakEnd) {
-            logger.warn(`Order ${lineOccupiedWith} already has an active break.`);
-            return;
-        }
 
         await Promise.all(
-            matchingBreaks.map(async (lineBreak) => {
-                const previousBreak = await Break.findOne({ _id: lineBreak._id });
-                if (previousBreak) {
-                    previousBreak.breakEnd = new Date();
-                    await previousBreak.save();
+            breaks.map(async (lineBreak) => {
+                const existingBreak = await Break.findOne({ _id: lineBreak._id, _line: orderLineId });
+                if (existingBreak && !existingBreak.breakEnd) {
+                    existingBreak.breakEnd = new Date();
+                    await existingBreak.save();
                 }
             })
         );
@@ -49,7 +42,6 @@ const handleOrderBreak = async (line: any, logger: Logger): Promise<void> => {
         await newBreak.save();
 
         const updatedBreaks = await Break.find({ _id: { $in: breaks.map((b) => b._id) } });
-
         updatedBreaks.push(newBreak);
 
         await order.updateOne({
@@ -76,9 +68,7 @@ export const pauseOrdersJob = async (logger: Logger): Promise<void> => {
             return;
         }
 
-        await Promise.all(lines.map((line) => {
-            handleOrderBreak(line, logger);
-        }));
+        await Promise.all(lines.map((line) => handleOrderBreak(line, logger)));
 
         logger.info("All occupied lines have been processed.");
     } catch (error) {
