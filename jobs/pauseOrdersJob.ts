@@ -1,7 +1,6 @@
 import { Order } from "../models/order";
 import { Line } from "../models/line";
 import { Break } from "../models/break";
-import { POSITION_ENUM } from "../services/operatorsConfig";
 import { Logger } from "winston";
 
 const handleOrderBreak = async (line: any, logger: Logger): Promise<void> => {
@@ -49,10 +48,7 @@ const handleOrderBreak = async (line: any, logger: Logger): Promise<void> => {
 
         await order.updateOne({
             breaks: updatedBreaks,
-            operators: POSITION_ENUM.map((position) => ({
-                position,
-                operator: null,
-            })),
+            operators: [],
         });
 
         logger.info(`Break successfully added to order: ${lineOccupiedWith}`);

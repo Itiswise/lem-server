@@ -36,13 +36,22 @@ export const deleteOperator = async function (
             return;
         }
 
-        Operator.findByIdAndRemove(_id, function (err, existingOperator) {
+        Operator.findByIdAndRemove(_id, async function (err, existingOperator) {
             if (err) {
                 return next(err);
             } else if (!existingOperator) {
                 return res.status(422).send({ error: "Operator does not exist!" });
             } else {
-                const message = `Deleted operator with email - ${existingOperator.email}`;
+                const result = await Order.updateMany(
+                    { "operators.operator": existingOperator._id }, // Match orders containing this operator
+                    { $pull: { operators: { operator: existingOperator._id } } } // Remove the operator from operators array
+                );
+
+                if (!result) {
+                    return res.status(422).send({ error: "Failed to delete operator from orders!" });
+                }
+
+                const message = `Deleted operator with identifier - ${existingOperator.identifier}`;
 
                 res.json({
                     message,

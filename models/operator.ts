@@ -4,7 +4,7 @@ export interface OperatorAttrs {
     _id?: mongoose.Schema.Types.ObjectId;
     firstname?: string;
     lastname?: string;
-    email?: string;
+    identifier: string;
 }
 
 interface OperatorModel extends mongoose.Model<OperatorDoc> {
@@ -15,18 +15,17 @@ interface OperatorDoc extends mongoose.Document {
     _id: mongoose.Schema.Types.ObjectId;
     firstname?: string;
     lastname?: string;
-    email?: string;
+    identifier?: string;
 }
 
 export const operatorSchema = new mongoose.Schema({
     firstname: { type: String, required: true },
     lastname: { type: String, required: true },
-    email: {
+    identifier: {
         type: String,
         required: true,
         unique: true,
         index: true,
-        lowercase: true,
     },
 });
 

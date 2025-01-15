@@ -1,22 +1,33 @@
-import winston from "winston";
+import winston, { format, transports, Logger } from "winston";
 
-export const createLogger = () => {
+export const createLogger = (): Logger => {
     const logger = winston.createLogger({
         level: "info",
-        format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.printf(({level, message}) => {
-                return `${level.toUpperCase()}: ${message}`;
+        format: format.combine(
+            format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+            format.printf((info: winston.Logform.TransformableInfo & { timestamp?: string }) => {
+                const { level, message, timestamp } = info;
+                return `[${timestamp}] ${level.toUpperCase()}: ${message}`;
             })
         ),
         transports: [
-            new winston.transports.File({ filename: "logs/app.log", level: "info" }),
-            new winston.transports.File({ filename: "logs/error.log", level: "error" }),
+            new transports.File({ filename: "logs/app.log", level: "info" }),
+            new transports.File({ filename: "logs/error.log", level: "error" }),
         ],
     });
 
     if (process.env.NODE_ENV !== "production") {
-        logger.add(new winston.transports.Console({ format: winston.format.simple() }));
+        logger.add(
+            new transports.Console({
+                format: format.combine(
+                    format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+                    format.printf((info: winston.Logform.TransformableInfo & { timestamp?: string }) => {
+                        const { level, message, timestamp } = info;
+                        return `[${timestamp}] ${level.toUpperCase()}: ${message}`;
+                    })
+                ),
+            })
+        );
     }
 
     return logger;

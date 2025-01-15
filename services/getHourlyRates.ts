@@ -5,17 +5,17 @@ import { renderTime } from "./renderTime";
 import { getDateWithHour } from "./getDateWithHour";
 import { getLineDescription } from "./getLineDescription";
 import { Operator as OperatorModel } from "../models/operator";
-import {ValidOperators, ValidPosition, positionMap} from "./operatorsConfig";
+import {ValidOperators, operatorsAttr} from "./operatorsConfig";
 
-const getPositionLabel = (position: ValidPosition): string => {
-    return positionMap[position as keyof typeof positionMap] || String(position);
+const getPositionLabel = (position: number): string => {
+    return `Stanowisko ${position}`;
 };
 
 const formatOperators = async (operators: ValidOperators | undefined): Promise<string> => {
     if (!operators) return "No operators";
 
     const operatorDetails = await Promise.all(
-        operators.map(async (operator) => {
+        operators.map(async (operator: operatorsAttr) => {
             const operatorData = await OperatorModel.findById(operator.operator).exec();
             if (!operatorData) {
                 return `[${getPositionLabel(operator.position)}]: Unknown Operator (No details found)`;
@@ -23,7 +23,7 @@ const formatOperators = async (operators: ValidOperators | undefined): Promise<s
 
             return `[${getPositionLabel(operator.position)}]: ${
                 operatorData.firstname || "Unknown"
-            } ${operatorData.lastname || "Unknown"} (${operatorData.email || "No email"})`;
+            } ${operatorData.lastname || "Unknown"} (${operatorData.identifier || "No identifier"})`;
         })
     );
 
