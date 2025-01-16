@@ -59,7 +59,7 @@ export const getOrders = function (
 
   Order.find(
     params,
-    "orderNumber orderStatus _id quantity partNumber qrCode orderAddedAt customer operators breaks",
+    "orderNumber orderStatus _id quantity partNumber qrCode orderAddedAt customer operators",
     function (err, orders) {
       if (err) {
         return next(err);

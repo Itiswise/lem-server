@@ -25,15 +25,13 @@ const handleOrderBreak = async (line: any, logger: Logger): Promise<void> => {
 
         const orderLineId = line._id;
 
-        await Promise.all(
-            breaks.map(async (lineBreak) => {
-                const existingBreak = await Break.findOne({ _id: lineBreak._id, _line: orderLineId });
-                if (existingBreak && !existingBreak.breakEnd) {
-                    existingBreak.breakEnd = new Date();
-                    await existingBreak.save();
-                }
-            })
-        );
+        await Promise.all(breaks.map(async (breakItem) => {
+            const breakModel = await Break.findOne({ _id: breakItem._id, _line: orderLineId });
+            if (breakModel && !breakModel.breakEnd) {
+                breakModel.breakEnd = new Date();
+                await breakModel.save();
+            }
+        }));
 
         const newBreak = new Break({
             breakStart: new Date(),
@@ -41,11 +39,8 @@ const handleOrderBreak = async (line: any, logger: Logger): Promise<void> => {
         });
         await newBreak.save();
 
-        const updatedBreaks = await Break.find({ _id: { $in: breaks.map((b) => b._id) } });
-        updatedBreaks.push(newBreak);
-
         await order.updateOne({
-            breaks: updatedBreaks,
+            breaks: [...breaks, newBreak],
             operators: [],
         });
 
