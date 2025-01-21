@@ -41,6 +41,9 @@ export const operatorSchema = new mongoose.Schema({
     required: true,
   },
   operator: { type: String, required: false },
+  firstName: { type: String, required: false },
+  lastName: { type: String, required: false },
+  identifier: { type: String, required: false },
 });
 
 export const orderSchema = new mongoose.Schema({

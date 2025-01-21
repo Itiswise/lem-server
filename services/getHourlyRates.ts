@@ -4,26 +4,21 @@ import { getValidScans } from "./getValidScans";
 import { renderTime } from "./renderTime";
 import { getDateWithHour } from "./getDateWithHour";
 import { getLineDescription } from "./getLineDescription";
-import { Operator as OperatorModel } from "../models/operator";
-import {ValidOperators, operatorsAttr} from "./operatorsConfig";
+import {ValidScanOperators, scanOperatorsAttr} from "./operatorsConfig";
 
 const getPositionLabel = (position: number): string => {
     return `Stanowisko ${position}`;
 };
 
-const formatOperators = async (operators: ValidOperators | undefined): Promise<string> => {
+const formatOperators = async (operators: ValidScanOperators | undefined): Promise<string> => {
     if (!operators) return "No operators";
 
     const operatorDetails = await Promise.all(
-        operators.map(async (operator: operatorsAttr) => {
-            const operatorData = await OperatorModel.findById(operator.operator).exec();
-            if (!operatorData) {
-                return `[${getPositionLabel(operator.position)}]: Unknown Operator (No details found)`;
+        operators.map(async (operator: scanOperatorsAttr) => {
+            if (operator?.position || operator?.firstName || operator?.lastName || operator?.identifier) {
+                return `[${getPositionLabel(operator?.position)}]: 
+                    ${operator?.firstName} ${operator?.lastName} (${operator?.identifier})`;
             }
-
-            return `[${getPositionLabel(operator.position)}]: ${
-                operatorData.firstname || "Unknown"
-            } ${operatorData.lastname || "Unknown"} (${operatorData.identifier || "No identifier"})`;
         })
     );
 
