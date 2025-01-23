@@ -16,12 +16,7 @@ const handleOrderBreak = async (line: any, logger: Logger): Promise<void> => {
             return;
         }
 
-        const { breaks, operators } = order;
-
-        if (!operators || !operators?.length) {
-            logger.info(`No operators found for order: ${lineOccupiedWith}`);
-            return;
-        }
+        const { breaks } = order;
 
         const orderLineId = line._id;
 
@@ -64,6 +59,42 @@ export const pauseOrdersJob = async (logger: Logger): Promise<void> => {
         }
 
         await Promise.all(lines.map((line) => handleOrderBreak(line, logger)));
+
+        await Promise.all(lines.map(async (line) => {
+            const { lineOccupiedWith } = line;
+
+            if (!lineOccupiedWith) {
+                return;
+            }
+
+            const order = await Order.findOne({ orderNumber: lineOccupiedWith });
+
+            if (!order) {
+                logger.warn(`No order found for order number: ${lineOccupiedWith}`);
+                return;
+            }
+
+            const operators = order.operators;
+
+            if (!operators?.length) {
+                logger.warn(`No operators found for order number: ${lineOccupiedWith}`);
+                return;
+            }
+
+            try {
+                order.updateOne({
+                    operators: [],
+                })
+
+                logger.info(`Operators successfully removed for order: ${lineOccupiedWith}`);
+            } catch (error) {
+                if (error instanceof Error) {
+                    logger.error(`Error removing operators for order ${lineOccupiedWith}: ${error.message}`);
+                } else {
+                    logger.error(`Unknown error removing operators for order ${lineOccupiedWith}: ${JSON.stringify(error)}`);
+                }
+            }
+        }));
 
         logger.info("All occupied lines have been processed.");
     } catch (error) {
