@@ -1,4 +1,5 @@
 import {ValidOperators, operatorsAttr} from "./operatorsConfig";
+import mongoose from "mongoose";
 
 export const validateOperators = (operators: ValidOperators): { valid: boolean; error?: string } => {
     if (!Array.isArray(operators)) {
@@ -9,7 +10,9 @@ export const validateOperators = (operators: ValidOperators): { valid: boolean; 
         return (
             typeof op === "object" &&
             typeof op.position === "number" &&
-            typeof op.operator === "string" && op.operator.trim().length > 0
+            typeof op.operator === "string" &&
+            op.operator.trim().length > 0 &&
+            (op._line === undefined || mongoose.Types.ObjectId.isValid(op._line))
         );
     });
 
@@ -22,11 +25,16 @@ export const validateOperators = (operators: ValidOperators): { valid: boolean; 
         return { valid: false, error: "Operators array contains duplicate positions!" };
     }
 
-    const operatorNames = operators
-        .map((op: any) => op.operator)
-        .filter((name) => name !== null);
-    if (new Set(operatorNames).size !== operatorNames.length) {
-        return { valid: false, error: "Operators array contains duplicate operator names!" };
+    const operatorKeys = operators.map((op: any) => {
+        const lineKey = op._line ? op._line.toString() : "";
+        return `${lineKey}-${op.operator}`;
+    });
+
+    if (new Set(operatorKeys).size !== operatorKeys.length) {
+        return {
+            valid: false,
+            error: "Operators array contains duplicate operator names for the same production line!",
+        };
     }
 
     return { valid: true };
