@@ -19,7 +19,7 @@ export const initAgenda = async function(logger: Logger): Promise<void> {
 
     await agenda.start();
 
-    await agenda.every("0 13 * * *", "pause_orders", {
+    await agenda.every("30 13 * * *", "pause_orders", {
         timezone: "Europe/Warsaw",
         skipImmediate: true,
     });
