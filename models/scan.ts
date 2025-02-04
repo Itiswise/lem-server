@@ -40,6 +40,11 @@ export const scanSchema = new mongoose.Schema({
         firstName: { type: String },
         lastName: { type: String },
         identifier: { type: String },
+        _line: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Line",
+          required: false,
+        },
       },
     ],
     required: false,
