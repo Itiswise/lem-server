@@ -49,6 +49,8 @@ export const addBreakStart = function (
 
     breaks.push(newBreak);
 
+    existingOrder.operators = [];
+
     existingOrder.save(function (err) {
       if (err) {
         next(err);
