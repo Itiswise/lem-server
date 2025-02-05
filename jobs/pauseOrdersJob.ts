@@ -1,34 +1,39 @@
 import { Order } from "../models/order";
+import { XlsxSource } from "../models/xlsxSource";
 import { Line } from "../models/line";
 import { Break } from "../models/break";
 import { Logger } from "winston";
 
-const handleOrderBreak = async (lines: any[], order: any, logger: Logger): Promise<void> => {
+const handleOrderBreak = async (order: any, lines: any[], logger: Logger): Promise<void> => {
     try {
         const updatedBreaks = [...order.breaks];
 
         for (const line of lines) {
-            const orderLineId = line._id;
+            const lineId = line._id;
 
-            for (const breakItem of order.breaks) {
-                if (breakItem._line === orderLineId && !breakItem.breakEnd) {
-                    const breakModel = await Break.findOne({ _id: breakItem._id, _line: orderLineId });
+            const openBreaks = order.breaks.filter(
+                (b: any) =>
+                    b._line &&
+                    b._line.toString() === lineId.toString() &&
+                    !b.breakEnd
+            );
 
-                    if (breakModel && !breakModel.breakEnd) {
-                        breakModel.breakEnd = new Date();
-                        await breakModel.save();
+            for (const breakItem of openBreaks) {
+                const breakModel = await Break.findById(breakItem._id);
+                if (breakModel && !breakModel.breakEnd) {
+                    breakModel.breakEnd = new Date();
+                    await breakModel.save();
 
-                        const existingBreak = updatedBreaks.find((b) => b._id.toString() === breakItem._id.toString());
-                        if (existingBreak) {
-                            existingBreak.breakEnd = breakModel.breakEnd;
-                        }
+                    const index = updatedBreaks.findIndex((b: any) => b._id.toString() === breakItem._id.toString());
+                    if (index !== -1) {
+                        updatedBreaks[index].breakEnd = breakModel.breakEnd;
                     }
                 }
             }
 
             const newBreak = new Break({
                 breakStart: new Date(),
-                _line: orderLineId,
+                _line: lineId,
             });
             await newBreak.save();
 
@@ -38,71 +43,67 @@ const handleOrderBreak = async (lines: any[], order: any, logger: Logger): Promi
                 _line: newBreak._line,
             });
 
-            logger.info(`Break successfully added for line: ${orderLineId} in order: ${order.orderNumber}`);
+            logger.info(`Added new break for line ${lineId} in order ${order.orderNumber}.`);
         }
 
-        await Order.updateOne(
-            { _id: order._id },
-            { $set: { breaks: updatedBreaks } }
-        );
+        order.operators = [];
+        order.breaks = updatedBreaks;
+
+        await order.save();
+
+        logger.info(`Order ${order.orderNumber} was successfully paused.`);
     } catch (error) {
-        logger.error(`Error handling breaks for order ${order.orderNumber}: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+        logger.error(
+            `Error - ${order.orderNumber}: ${
+                error instanceof Error ? error.message : JSON.stringify(error)
+            }`
+        );
     }
 };
 
 export const pauseOrdersJob = async (logger: Logger): Promise<void> => {
     try {
-        const lines = await Line.find({ lineStatus: { $ne: "free" } });
-
+        const lines = await Line.find({});
         if (!lines.length) {
-            logger.info("No occupied lines found to process.");
+            logger.info("No lines found to pause orders.");
             return;
         }
 
-        const linesByOrder: Record<string, any[]> = lines.reduce<Record<string, any[]>>((acc, line) => {
-            if (line.lineOccupiedWith) {
-                if (!acc[line.lineOccupiedWith]) {
-                    acc[line.lineOccupiedWith] = [];
-                }
-                acc[line.lineOccupiedWith].push(line);
-            }
-            return acc;
-        }, {});
-
-        for (const [orderNumber, lines] of Object.entries(linesByOrder)) {
-            const order = await Order.findOne({ orderNumber });
-
-            if (!order) {
-                logger.warn(`No order found for order number: ${orderNumber}`);
-                continue;
-            }
-
-            await handleOrderBreak(lines, order, logger);
+        const xlsxSource = await XlsxSource.findOne({ idCode: "menu" });
+        if (!xlsxSource || !xlsxSource.menuContent || !xlsxSource.menuContent.length) {
+            logger.info("No menu content found.");
+            return;
         }
 
-        for (const [orderNumber] of Object.entries(linesByOrder)) {
-            const order = await Order.findOne({ orderNumber });
+        const orderNumbers = xlsxSource.menuContent
+            .map(item => item.orderNumber)
+            .filter((orderNumber): orderNumber is string => Boolean(orderNumber));
 
-            if (!order) {
-                logger.warn(`No order found for order number: ${orderNumber}`);
-                continue;
-            }
-
-            if (!order.operators?.length) {
-                logger.warn(`No operators found for order number: ${orderNumber}`);
-                continue;
-            }
-
-            try {
-                await order.updateOne({ operators: [] });
-                logger.info(`Operators successfully removed for order: ${orderNumber}`);
-            } catch (error) {
-                logger.error(`Error removing operators for order ${orderNumber}: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
-            }
+        if (!orderNumbers.length) {
+            logger.info("No order numbers found in menu content.");
+            return;
         }
 
-        logger.info("All occupied lines have been processed.");
+        for (const orderNumber of orderNumbers) {
+            const order = await Order.findOne({
+                orderNumber,
+                orderStatus: { $ne: 'closed' }
+            });
+
+            if (!order) {
+                logger.warn(`Order ${orderNumber} not found or already closed.`);
+                continue;
+            }
+
+            await handleOrderBreak(order, lines, logger);
+        }
+
+        logger.info("All orders were successfully paused.");
     } catch (error) {
-        logger.error(`Error in pauseOrdersJob: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+        logger.error(
+            `Error: ${
+                error instanceof Error ? error.message : JSON.stringify(error)
+            }`
+        );
     }
 };

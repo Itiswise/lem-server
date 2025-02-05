@@ -5,6 +5,7 @@ export interface OperatorAttrs {
     firstname?: string;
     lastname?: string;
     identifier: string;
+    _line?: mongoose.Schema.Types.ObjectId;
 }
 
 interface OperatorModel extends mongoose.Model<OperatorDoc> {
@@ -16,6 +17,7 @@ interface OperatorDoc extends mongoose.Document {
     firstname?: string;
     lastname?: string;
     identifier?: string;
+    _line?: mongoose.Schema.Types.ObjectId;
 }
 
 export const operatorSchema = new mongoose.Schema({
@@ -26,6 +28,11 @@ export const operatorSchema = new mongoose.Schema({
         required: true,
         unique: true,
         index: true,
+    },
+    _line: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Line",
+        required: false,
     },
 });
 
