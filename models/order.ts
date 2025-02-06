@@ -64,20 +64,6 @@ export const orderSchema = new mongoose.Schema({
   scans: [scanSchema],
   operators: {
     type: [operatorSchema],
-    validate: {
-      validator: function (operators: any[]) {
-        if (!operators) return true;
-
-        const positions = operators.map((op) => op.position);
-        if (new Set(positions).size !== positions.length) {
-          return false;
-        }
-
-        const operatorNames = operators.map((op) => op.operator).filter((name) => name !== null);
-        return new Set(operatorNames).size === operatorNames.length;
-      },
-      message: "Each operator must have both position and operator",
-    },
     required: false,
   },
 });

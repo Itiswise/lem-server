@@ -49,7 +49,7 @@ export const addBreakStart = function (
 
     breaks.push(newBreak);
 
-    existingOrder.operators = [];
+    existingOrder.operators = existingOrder.operators?.filter((operator) => operator._line != _line);
 
     existingOrder.save(function (err) {
       if (err) {

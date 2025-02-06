@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Order } from "../../models/order";
 import { validateOperators } from "../../services/operatorsValidation";
+import {operatorsAttr} from "../../services/operatorsConfig";
 
 export const updateOrderOperators = function (
     req: Request,
@@ -28,7 +29,28 @@ export const updateOrderOperators = function (
     try {
         Order.findOneAndUpdate(
             { orderNumber },
-            { operators },
+            [
+                {
+                    $set: {
+                        operators: {
+                            $concatArrays: [
+                                {
+                                    $filter: {
+                                        input: "$operators",
+                                        as: "existingOp",
+                                        cond: {
+                                            $not: {
+                                                $in: ["$$existingOp.operator", operators.map((op: any): op is operatorsAttr => op.operator)]
+                                            }
+                                        }
+                                    }
+                                },
+                                operators
+                            ]
+                        }
+                    }
+                }
+            ],
             { new: true, upsert: false, runValidators: true },
             function (err, existingOrder) {
                 if (err) {

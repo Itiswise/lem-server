@@ -1,4 +1,4 @@
-import {ValidOperators, operatorsAttr} from "./operatorsConfig";
+import { ValidOperators, operatorsAttr } from "./operatorsConfig";
 import mongoose from "mongoose";
 
 export const validateOperators = (operators: ValidOperators): { valid: boolean; error?: string } => {
@@ -9,9 +9,8 @@ export const validateOperators = (operators: ValidOperators): { valid: boolean; 
     const isValidStructure = operators.every((op: any): op is operatorsAttr => {
         return (
             typeof op === "object" &&
-            typeof op.position === "number" &&
             typeof op.operator === "string" &&
-            op.operator.trim().length > 0 &&
+            mongoose.Types.ObjectId.isValid(op.operator) &&
             (op._line === undefined || mongoose.Types.ObjectId.isValid(op._line))
         );
     });
@@ -20,21 +19,11 @@ export const validateOperators = (operators: ValidOperators): { valid: boolean; 
         return { valid: false, error: "Invalid operators data!" };
     }
 
-    const positions = operators.map((op: any) => op.position);
-    if (new Set(positions).size !== positions.length) {
-        return { valid: false, error: "Operators array contains duplicate positions!" };
-    }
+    const operatorIds = operators.map((op: any): op is operatorsAttr => op.operator);
+    const hasDuplicates = new Set(operatorIds).size !== operatorIds.length;
 
-    const operatorKeys = operators.map((op: any) => {
-        const lineKey = op._line ? op._line.toString() : "";
-        return `${lineKey}-${op.operator}`;
-    });
-
-    if (new Set(operatorKeys).size !== operatorKeys.length) {
-        return {
-            valid: false,
-            error: "Operators array contains duplicate operator names for the same production line!",
-        };
+    if (hasDuplicates) {
+        return { valid: false, error: "Duplicate operators detected!" };
     }
 
     return { valid: true };

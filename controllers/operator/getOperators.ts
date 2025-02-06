@@ -30,20 +30,26 @@ export const getOperators = async function (
             const ids = [...lineOperatorIds, ...operatorIds];
 
             if (existingOrder) {
-                const operatorIdsInLine = await Order.aggregate([
-                    { $unwind: "$operators" },
-                    { $match: { "operators._line": new mongoose.Types.ObjectId(productionLineId) } },
-                    { $group: { _id: "$operators.operator" } }
-                ]).then(results => results.map(res => res._id.toString()));
-
                 const operatorIdsInOrder = existingOrder.operators
                     ?.map((operator: { operator: any }) => operator.operator)
                     .filter(Boolean) || [];
+                const existingOperatorIdsInLine = existingOrder.operators
+                    ?.filter((operator: any) => operator?._line == productionLineId)
+                    .map((operator: { operator: any }) => operator.operator)
+                    .filter(Boolean) || [];
 
-                const filteredOperatorIds = operatorIds.filter(id => !operatorIdsInOrder.includes(id));
-                const filterOperatorIdsByLine = lineOperatorIds.filter(id => !operatorIdsInLine.includes(id));
+                const filteredOperatorIds = operatorIds.filter(id => !operatorIdsInOrder.includes(id))
+                const filteredLineOperatorIds = lineOperatorIds.filter(id => !existingOperatorIdsInLine.includes(id));
 
-                const ids = [...filteredOperatorIds, ...filterOperatorIdsByLine];
+                console.log('filteredOperatorIds', filteredOperatorIds);
+                console.log('filteredLineOperatorIds', filteredLineOperatorIds);
+                console.log('existingOperatorIdsInLine', existingOperatorIdsInLine);
+                console.log('productionLineId', productionLineId);
+                console.log('currentOrderOperators', existingOrder.operators);
+
+                const ids = [...filteredOperatorIds, ...filteredLineOperatorIds];
+
+                console.log('ids', ids);
 
                 operatorsQuery = operatorsQuery
                     .where("_id").nin(ids);
