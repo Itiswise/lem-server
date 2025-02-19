@@ -1,7 +1,6 @@
 import express from "express";
 import http from "http";
 import helmet from "helmet";
-import bodyParser from "body-parser";
 import morgan from "morgan";
 import mongoose from "mongoose";
 import ioserver, { Socket, Server, ServerOptions } from "socket.io";
@@ -11,6 +10,8 @@ import dotenv from "dotenv";
 import router from "./router";
 import { sockets } from "./sockets";
 import { keys } from "./config/keys";
+import {initAgenda} from "./jobs";
+import { createLogger } from "./logger";
 
 const app = express();
 dotenv.config();
@@ -31,7 +32,8 @@ mongoose.connect(keys.dbAtlas, {
 app.use(morgan("combined")); // logging framework for debugging
 app.use(helmet());
 app.use(cors());
-app.use(bodyParser.json({ type: "*/*" })); // parse all requests to JSON
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 // forwarding to https on Heroku
 if (process.env.NODE_ENV === "production") {
   app.use((req, res, next) => {
@@ -54,3 +56,9 @@ sockets(io);
 
 server.listen(port);
 console.log("server is listening on: ", port);
+
+const logger = createLogger();
+
+(async function() {
+  await initAgenda(logger);
+})();

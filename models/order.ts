@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { breakSchema, BreakAttrs } from "./break";
 import { scanSchema, ScanAttrs } from "./scan";
+import {ValidOperators} from "../services/operatorsConfig";
 
 export interface OrderAttrs {
   orderNumber: string;
@@ -13,6 +14,7 @@ export interface OrderAttrs {
   orderAddedAt: Date;
   breaks: BreakAttrs[];
   scans: ScanAttrs[];
+  operators?: ValidOperators;
 }
 
 interface OrderModel extends mongoose.Model<OrderDoc> {
@@ -30,7 +32,24 @@ export interface OrderDoc extends mongoose.Document {
   orderAddedAt: Date;
   breaks: BreakAttrs[];
   scans: ScanAttrs[];
+  operators?: ValidOperators;
 }
+
+export const operatorSchema = new mongoose.Schema({
+  position: {
+    type: Number,
+    required: true,
+  },
+  operator: { type: String, required: false },
+  firstName: { type: String, required: false },
+  lastName: { type: String, required: false },
+  identifier: { type: String, required: false },
+  _line: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Line",
+    required: false,
+  },
+});
 
 export const orderSchema = new mongoose.Schema({
   orderNumber: { type: String, required: true, unique: true, index: true },
@@ -43,6 +62,10 @@ export const orderSchema = new mongoose.Schema({
   orderAddedAt: { type: Date, default: Date.now },
   breaks: [breakSchema],
   scans: [scanSchema],
+  operators: {
+    type: [operatorSchema],
+    required: false,
+  },
 });
 
 export const Order = mongoose.model<OrderDoc, OrderModel>("Order", orderSchema);

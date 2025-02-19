@@ -97,10 +97,22 @@ export const getLiveView = function(
 
           const isOrderRunning = () => {
             if (!breaks) return false;
-            if (breaks.length > 0 && breaks[breaks.length - 1].breakEnd) {
+
+            const thisLineBreaks = breaks.filter(function(item) {
+              return item._line.toString() === _id.toString();
+            });
+            if (thisLineBreaks.length === 0) {
               return true;
             }
-            return false;
+
+            // is running when this line has breaks on this order AND the last break does have end
+            const isOrderRunning =
+              thisLineBreaks.length > 0 &&
+              thisLineBreaks[thisLineBreaks.length - 1].breakEnd
+                ? true
+                : false;
+
+            return isOrderRunning;
           };
 
           const getExactOrderStatus = () => {

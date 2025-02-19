@@ -13,11 +13,12 @@ export const addScan = function (
 ): void {
   const orderNumber = req.body.orderNumber;
   const scanContent: string = req.body.scanContent;
+  const operators = req.body.operators;
   let errorCode = req.body.errorCode || "e000";
   const _line = req.body._line;
   const _user = req.body._user;
 
-  if (!orderNumber || !scanContent || !errorCode || !_line || !_user) {
+  if (!orderNumber || !scanContent || !errorCode || !_line || !_user || !operators) {
     res.status(422).send({
       error: "Not enough values!",
     });
@@ -33,11 +34,6 @@ export const addScan = function (
       if (err) {
         return next(err);
       }
-
-
-
-
-
 
       if (!existingOrder) {
         return res.status(422).send({ error: "Order does not exist" });
@@ -108,6 +104,7 @@ export const addScan = function (
         errorCode,
         _line,
         _user,
+        operators,
       });
 
       scans.unshift(scan);
@@ -182,7 +179,7 @@ export const addScan = function (
             xlsxTactTime,
           });
 
-          await res.json({
+          res.json({
             orderStats,
             existingOrder,
             hourlyRates: hourlyRates(),

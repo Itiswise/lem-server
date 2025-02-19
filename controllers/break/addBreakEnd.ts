@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import { Request, Response, NextFunction } from "express";
 import { Order } from "../../models/order";
+import {createLogger} from "../../logger";
+
+const logger = createLogger();
 
 export const addBreakEnd = function (
   req: Request,
@@ -56,6 +59,8 @@ export const addBreakEnd = function (
           res.json({
             existingOrder,
           });
+
+          logger.info(`Break end added to order ${orderNumber}`);
         });
       }
     });

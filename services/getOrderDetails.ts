@@ -34,7 +34,7 @@ export const getOrderDetails = (order: OrderDoc, lines: LineDoc[]) => {
       getMeanCycleTimeInMilliseconds(order);
     const meanHourlyRate = () => getMeanHourlyRate(order);
     const meanGrossHourlyRate = () => getMeanGrossHourlyRate(order);
-    const hourlyRates = () => getHourlyRates(order, lines);
+    const hourlyRates = async () => await getHourlyRates(order, lines);
     const scansAlready = () => scans.length;
     const validScans = () => scansWithoutErrors.length;
     const linesUsed = () => getUsedLinesDescriptions(scans, lines);

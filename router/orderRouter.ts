@@ -40,4 +40,5 @@ export const orderRouter = function (app: Express) {
     OrderController.deleteOrder
   );
   app.post("/api/scan", requireAuth, OrderController.addScan);
+  app.put("/api/order/:dashedordernumber/operators", requireAuth, OrderController.updateOrderOperators);
 };
