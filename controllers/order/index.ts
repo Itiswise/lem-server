@@ -9,3 +9,4 @@ export * from "./addScan";
 export * from "./getAllPartNumbers";
 export * from "./getFullOrders";
 export * from "./updateOrderOperators";
+export * from "./deleteOrderOperators";

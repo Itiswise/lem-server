@@ -32,6 +32,7 @@ export const closeOrder = function (
       // logic closed in in IF STATEMENT beause there can be other statuses in the future
       if (existingOrder.orderStatus === "open") {
         existingOrder.orderStatus = "closed";
+        existingOrder.operators = [];
         existingOrder.save(function (err) {
           if (err) {
             return next(err);
