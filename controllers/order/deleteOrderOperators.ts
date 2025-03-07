@@ -1,57 +1,48 @@
 import { Request, Response, NextFunction } from "express";
 import { Order } from "../../models/order";
-import { validateOperators } from "../../services/operatorsValidation";
 
-export const deleteOrderOperators = function (
+export const deleteOrderOperators = async function (
     req: Request,
     res: Response,
     next: NextFunction
-): void {
-    const orderNumber = req.params.dashedordernumber.replace(/-/g, "/");
-    const operators = req.body.operators;
-
-    if (!orderNumber || !operators) {
-        res.status(422).send({
-            error: "Not enough values!",
-        });
-        return;
-    }
-
-    const { valid, error } = validateOperators(operators);
-    if (!valid) {
-        res.status(422).send({
-            error,
-        });
-        return;
-    }
-
+): Promise<void> {
     try {
-        Order.findOne({ orderNumber }, function (err, existingOrder) {
-            if (err) {
-                return next(err);
-            }
+        const orderNumber = req.params.dashedordernumber.replace(/-/g, "/");
 
-            if (!existingOrder) {
-                return res.status(422).send({ error: "Order does not exist!" });
-            }
-
-            if (existingOrder.orderStatus !== 'closed') {
-                return res.status(422).send({ error: "Order is not closed!" });
-            }
-
-            existingOrder.operators = [];
-
-            existingOrder.save(function (err) {
-                if (err) {
-                    return next(err);
-                }
-
-                res.json({
-                    message: `Deleted operators from order no. ${existingOrder.orderNumber}`,
-                });
+        if (!orderNumber) {
+            res.status(422).send({
+                error: "Not enough values!",
             });
-        })
+            return;
+        }
+
+        const existingOrder = await Order.findOne({ orderNumber });
+
+        if (!existingOrder) {
+            res.status(422).send({ error: "Order does not exist!" });
+            return;
+        }
+
+        if (existingOrder.orderStatus !== "closed") {
+            res.status(422).send({ error: "Order is not closed!" });
+            return;
+        }
+
+        const updatedOrder = await Order.findOneAndUpdate(
+            { orderNumber },
+            { $set: { operators: [] } },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedOrder) {
+            res.status(500).send({ error: "Failed to update order!" });
+            return;
+        }
+
+        res.json({
+            message: `Deleted operators from order no. ${updatedOrder.orderNumber}`,
+        });
     } catch (error) {
-        return next(error);
+        next(error);
     }
-}
+};

@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { Order } from "../../models/order";
 
-export const closeOrder = function (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
+export const closeOrder = async function (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
   try {
     const orderNumber = req.body.orderNumber;
 
@@ -16,42 +16,37 @@ export const closeOrder = function (
       return;
     }
 
-    Order.findOne({ orderNumber }, function (err, existingOrder) {
-      if (err) {
-        return next(err);
+    const existingOrder = await Order.findOne({ orderNumber });
+
+    if (!existingOrder) {
+      res.status(422).send({ error: "Order does not exist!" });
+      return;
+    }
+
+    if (existingOrder.orderStatus === "closed") {
+      res.status(422).send({ error: "Order is already closed!" });
+      return;
+    }
+
+    if (existingOrder.orderStatus === "open") {
+      const updatedOrder = await Order.findOneAndUpdate(
+          { orderNumber },
+          { $set: { orderStatus: "closed", operators: [] } },
+          { new: true, runValidators: true }
+      );
+
+      if (!updatedOrder) {
+        res.status(500).send({ error: "Failed to update order!" });
+        return;
       }
 
-      if (!existingOrder) {
-        return res.status(422).send({ error: "Order does not exist!" });
-      }
-
-      if (existingOrder.orderStatus === "closed") {
-        return res.status(422).send({ error: "Order is already closed!" });
-      }
-
-      // logic closed in in IF STATEMENT beause there can be other statuses in the future
-      if (existingOrder.orderStatus === "open") {
-        existingOrder.orderStatus = "closed";
-        existingOrder.operators = [];
-        existingOrder.save(function (err) {
-          if (err) {
-            return next(err);
-          }
-          const message = `Updated order no. ${existingOrder.orderNumber} status to: ${existingOrder.orderStatus}`;
-
-          res.json({
-            message,
-          });
-        });
-      } else {
-        const message = `No changes were added`;
-
-        res.json({
-          message,
-        });
-      }
-    });
+      res.json({
+        message: `Updated order no. ${updatedOrder.orderNumber} status to: ${updatedOrder.orderStatus}`,
+      });
+    } else {
+      res.json({ message: "No changes were added" });
+    }
   } catch (error) {
-    return next(error);
+    next(error);
   }
 };

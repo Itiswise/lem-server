@@ -119,6 +119,8 @@ export const addScan = function (
         });
         breaks.push(newBreak);
         existingOrder.orderStatus = "closed";
+        existingOrder.operators = [];
+        existingOrder.markModified("operators");
       }
       existingOrder.save(async function (err) {
         if (err) {
@@ -182,7 +184,7 @@ export const addScan = function (
           res.json({
             orderStats,
             existingOrder,
-            hourlyRates: hourlyRates(),
+            hourlyRates: await hourlyRates(),
           });
         }
 
