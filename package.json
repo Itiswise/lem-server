@@ -8,7 +8,8 @@
     "npm": "6.14.5"
   },
   "scripts": {
-    "start": "TZ=Europe/Warsaw ts-node-dev --poll index.ts"
+    "start": "TZ=Europe/Warsaw ts-node-dev --poll index.ts",
+    "clear-operators": "ts-node scripts/runClearOperators.ts"
   },
   "keywords": [
     "rest api",
