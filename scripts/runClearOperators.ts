@@ -1,9 +1,17 @@
 import { clearOperatorsJob } from "../jobs/clearOperatorsJob";
 import { Logger } from "winston";
+import mongoose from "mongoose";
+import {keys} from "../config/keys";
 
 const logger: Logger = console as unknown as Logger;
 
 const runJob = async () => {
+    await mongoose.connect(keys.dbAtlas, {
+        useNewUrlParser: true,
+        useCreateIndex: true,
+        useUnifiedTopology: true,
+    });
+
     try {
         console.log("Running 'clear_operators' job...");
 
