@@ -9,7 +9,8 @@
   },
   "scripts": {
     "start": "TZ=Europe/Warsaw ts-node-dev --poll index.ts",
-    "clear-operators": "ts-node scripts/runClearOperators.ts"
+    "clear-operators": "ts-node scripts/runClearOperators.ts",
+    "pause-orders": "ts-node scripts/runPauseOrders.ts"
   },
   "keywords": [
     "rest api",
