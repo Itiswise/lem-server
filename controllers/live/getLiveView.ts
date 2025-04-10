@@ -77,7 +77,7 @@ export const getLiveView = function(
               localTime.getMonth() + 1
             );
             const day = concatenateZeroIfLessThanTen(localTime.getDate());
-            const hours = concatenateZeroIfLessThanTen(localTime.getHours());
+            const hours = concatenateZeroIfLessThanTen(localTime.getHours() + 2);
             const minutes = concatenateZeroIfLessThanTen(
               localTime.getMinutes()
             );
